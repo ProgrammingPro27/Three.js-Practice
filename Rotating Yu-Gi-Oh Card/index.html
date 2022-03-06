@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <script type="module">
+        import * as THREE from 'https://cdn.skypack.dev/three@0.138.0';
+        import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.121.1/examples/jsm/controls/OrbitControls.js';
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        const controls = new OrbitControls(camera, renderer.domElement);
+
+        document.body.appendChild(renderer.domElement);
+
+        let texture = new THREE.TextureLoader().load("http://localhost:8080/cardFront");
+        let texture2 = new THREE.TextureLoader().load("http://localhost:8080/cardBack");
+        let materials = [new THREE.MeshBasicMaterial({ map: texture, side: THREE.FrontSide }),
+        new THREE.MeshBasicMaterial({ map: texture2, side: THREE.BackSide })];
+
+        let group = new THREE.Group();
+        const geometry = new THREE.PlaneGeometry(2.5, 4);
+        scene.add(group);
+        group.add(new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ map: texture, side: THREE.FrontSide })));
+        group.add(new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ map: texture2, side: THREE.BackSide })));
+        scene.add(group);
+
+        camera.position.z = 5;
+        //  controls.update();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            group.rotation.y += 0.01;
+            renderer.render(scene, camera);
+        };
+        animate();
+    </script>
+</body>
+
+</html>
