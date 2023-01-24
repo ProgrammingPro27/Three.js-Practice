@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>My first three.js app</title>
+    <style>
+        body {
+            margin: 0;
+        }
+
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        #mainPanel {
+            width: 20%;
+            height: 100%;
+            background-color: darkgrey;
+            position: absolute;
+            overflow-y: auto;
+        }
+
+        .controlButton {
+            width: 100%;
+            background-color: orange;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .showHideButton {
+            height: 100%;
+            width: 50px;
+            background-Color: orange;
+            border: none;
+            cursor: pointer;
+        }
+
+        .topControl {
+            width: 80%;
+            height: 50px;
+            display: flex;
+            align-Items: center;
+            justify-Content: space-between;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Three.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.115/build/three.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.115/examples/js/loaders/GLTFLoader.js"></script>
+    <script type="module">
+        function ArmControl() {
+            this.mainPanel = document.createElement("DIV");
+            this.mainPanel.id = "mainPanel"
+            this.values = {}
+            document.body.appendChild(this.mainPanel)
+        }
+        ArmControl.prototype.addControl = function (id) {
+            let controlButton = document.createElement("DIV");
+            let showHideB = document.createElement("BUTTON");
+            showHideB.innerText = "-"
+            showHideB.className = "showHideButton"
+
+            let topControl = document.createElement("DIV");
+            topControl.className = "topControl"
+
+            let controlName = document.createElement("LABEL");
+            controlName.innerText = controlButton.id = id
+            controlButton.className = "controlButton"
+
+            topControl.appendChild(controlName)
+            topControl.appendChild(showHideB)
+            controlButton.appendChild(topControl)
+            let values = this.values
+            let idd = id
+            values[idd] = {}
+            function axisCreator(id) {
+                let ctrlHold = document.createElement("DIV")
+                ctrlHold.style.width = "80%"
+                ctrlHold.style.display = "flex"
+                ctrlHold.style.justifyContent = "space-between"
+                let controlAxis = document.createElement("LABEL");
+                let inputControl = document.createElement("INPUT");
+
+                inputControl.type = "range"
+                inputControl.min = -360;
+                inputControl.max = 360;
+                inputControl.step = 0.001;
+                inputControl.value = 0;
+
+                controlAxis.innerText = id + ":   " + inputControl.value
+
+
+                values[idd][id] = Number(inputControl.value)
+
+                inputControl.addEventListener("input", function () {
+                    controlAxis.innerText = id + ":   " + inputControl.value
+                    values[idd][id] = Number(inputControl.value)
+
+                })
+                ctrlHold.appendChild(controlAxis)
+                ctrlHold.appendChild(inputControl)
+                controlButton.appendChild(ctrlHold)
+                return ctrlHold
+            }
+            let ctrlX = axisCreator("x")
+            let ctrlY = axisCreator("y")
+            let ctrlZ = axisCreator("z")
+
+            showHideB.addEventListener("click", function () {
+                if (showHideB.innerText == "+") {
+                    showHideB.innerText = "-"
+                    ctrlX.style.display = ctrlY.style.display = ctrlZ.style.display = "flex"
+                } else {
+                    showHideB.innerText = "+"
+                    ctrlX.style.display = ctrlY.style.display = ctrlZ.style.display = "none"
+                }
+            })
+            this.mainPanel.appendChild(controlButton)
+        }
+
+        import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.121.1/examples/jsm/controls/OrbitControls.js';
+
+        const renderer = new THREE.WebGLRenderer();
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
+        const scene = new THREE.Scene();
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+
+        let armControl = new ArmControl();
+
+        let glob = []
+
+        function init() {
+            scene.background = new THREE.Color('black');
+            camera.position.set(0, 10, 20);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+        }
+
+        function setLight() {
+            scene.add(new THREE.HemisphereLight(0xEBCCAB, 0xC37C4D));
+        }
+
+        function loadGLTF() {
+            let balloonLoader = new THREE.GLTFLoader();
+
+            balloonLoader.load("./FpsArmsLowUpdated.gltf", (gltf) => {
+                scene.add(gltf.scene);
+                let vals = gltf.scene.children[0].children[0].children[1].skeleton.bones
+                for (let i of vals) {
+                    armControl.addControl(i.name)
+                    i.rotation.name = i.name
+                    glob.push(i.rotation)
+                }
+            });
+        }
+        function moveArm() {
+            glob.forEach(el => {
+                el.x = armControl.values[el.name].x
+                el.y = armControl.values[el.name].y
+                el.z = armControl.values[el.name].z
+            })
+        }
+        function animate() {
+            requestAnimationFrame(animate);
+            moveArm()
+            renderer.render(scene, camera);
+        }
+
+        init();
+        setLight();
+        loadGLTF();
+        animate();
+
+    </script>
+</body>
+
+</html>
