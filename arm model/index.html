@@ -181,14 +181,12 @@
             balloonLoader.load("/arms/Left_arm.gltf", (gltf) => {
                 scene.add(gltf.scene);
                 let vals = getObjectsByProperty(gltf.scene, 'Skeleton')
-                for (let i = 0; i < vals.length; i++) {
+                for (let i = 0; i <= 23; i++) {
                     if (vals[i].type) {
-                        if (vals[i].type == "Bone") {
-                            if (i <= 23) {
+                        if (vals[i].type == "Bone") {                      
                                 armControl.addControl(vals[i].name)
                                 vals[i].rotation.name = vals[i].name
-                                glob.push(vals[i].rotation)
-                            }
+                                glob.push(vals[i].rotation)                           
                         }
                     }
                 }
